@@ -14,8 +14,15 @@ ENV LD_LIBRARY_PATH /steamlib
 # Set a specific tModLoader version, defaults to the latest Github release
 ARG TML_VERSION
 
-ENV USER root
-ENV HOME /tml
+# Create tModLoader user and drop root permissions
+ARG UID
+ARG GID
+RUN addgroup -g $GID tml \
+ && adduser tml -u $UID -G tml -h /home/tml -D
+
+USER tml
+ENV USER tml
+ENV HOME /home/tml
 WORKDIR $HOME
 
 # Update SteamCMD and verify latest version
@@ -27,4 +34,4 @@ RUN curl -O https://raw.githubusercontent.com/tModLoader/tModLoader/1.4.4/patche
 
 EXPOSE 7777
 
-ENTRYPOINT [ "/bin/bash", "-c", "./manage-tModLoaderServer.sh docker --folder /tml" ]
+ENTRYPOINT [ "/bin/bash", "-c", "./manage-tModLoaderServer.sh docker --folder ~/.local/share/Terraria/tModLoader" ]
