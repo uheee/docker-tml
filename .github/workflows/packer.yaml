@@ -16,6 +16,11 @@ on:
         description: "Template Version"
         required: true
         type: string
+      PLATFORM:
+        description: "Docker build platform (e.g., amd64, aarch64)"
+        required: true
+        type: string
+        default: "amd64"
 
 jobs:
   Build-Docker-Image:
@@ -26,7 +31,7 @@ jobs:
 
       - name: Define variables
         run: |
-          TAG_NAME="${{ github.event.inputs.TML_VERSION }}-uid${{ github.event.inputs.UID }}-gid${{ github.event.inputs.GID }}"
+          TAG_NAME="${{ github.event.inputs.TML_VERSION }}-uid${{ github.event.inputs.UID }}-gid${{ github.event.inputs.GID }}-${{ github.event.inputs.PLATFORM }}"
           IMAGE_NAME="snowind/tml:${TAG_NAME}"
           FILE_NAME="tml-${TAG_NAME}.tar"
           echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
@@ -42,7 +47,8 @@ jobs:
       - name: Build image
         run: |
           export DOCKER_BUILDKIT=1
-          docker buildx build -t ${{ env.IMAGE_NAME }} \
+          docker buildx build --platform ${{ github.event.inputs.PLATFORM }} \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg UID=${{ github.event.inputs.UID }} \
             --build-arg GID=${{ github.event.inputs.GID }} \
             --build-arg TML_VERSION=${{ github.event.inputs.TML_VERSION }} .
